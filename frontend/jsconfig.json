@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",          // let paths resolve from project root
+    "paths": {
+      "@/*": ["src/*"]       // alias: @/foo → src/foo
+    }
+  }
+}

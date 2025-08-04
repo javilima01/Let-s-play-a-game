@@ -1,4 +1,5 @@
-from typing import List, Optional, Union
+from datetime import datetime
+from typing import List, Literal, Optional, Union
 from pydantic import BaseModel, Field, ConfigDict
 
 # ---------------- Shared ----------------
@@ -15,7 +16,7 @@ class QuestionMessages(BaseModel):
 
 # ---------------- Steps ----------------
 class QuestionStep(BaseModel):
-    type: str = Field("question", const=True)
+    type: Literal["question"] = "question"
     step: int
     question: str
     timeLimit: int
@@ -40,19 +41,38 @@ class Opponent(PlayerMini):
 
 
 class ChallengeStep(BaseModel):
-    type: str = Field("challenge", const=True)
+    type: Literal["challenge"] = "challenge"
     step: int
     challengeId: str
     player: PlayerMini
     opponents: List[Opponent]
 
+class GameMetaResponse(BaseModel):
+    gameId: str
+    title: str | None = None
+    description: str | None = None
+    total: int
+    started: bool | None = None
+    createdAt: datetime | None = None
+
+class StepPatch(BaseModel):
+    # all fields optional
+    question: str | None = None
+    timeLimit: int | None = None
+    options: list[QuestionOption] | None = None
+    player: dict | None = None
+    opponents: list[dict] | None = None
 
 StepResponse = Union[QuestionStep, ChallengeStep]
 
 # ---------------- Game meta ----------------
+# add `challengeSteps` and make `challengeEvery` optional (or drop it)
 class StartGameResponse(BaseModel):
-    total: int
     gameId: str
+    total: int
+    challengeSteps: List[int]
+    challengeEvery: int | None = None   # keep for backward compatibility
+
 
 
 class DescriptionResponse(BaseModel):

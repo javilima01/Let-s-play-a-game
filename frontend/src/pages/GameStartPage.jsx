@@ -1,65 +1,72 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import styles from "../css/GameStartPage.module.css";
 import { getDescription } from "../services/endpoints";
 import GamePage from "./GamePage";
 
-export default function GameStartPage({
-  fetchDescription = getDescription,
-}) {
-  const [description, setDescription] = useState("");
-  const [title, setTitle] = useState("");
-  const [gameId, setGameId] = useState(null);
-  const [started, setStarted] = useState(false);
+export default function GameStartPage() {
+  const { gameId: urlGameId } = useParams();   // ✅ read from /g/:gameId
+  const navigate = useNavigate();
 
-  /* -------------------- fetch description -------------------- */
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [gameId, setGameId] = useState(urlGameId || null);
+  const [started, setStarted] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // ── 1.  Fetch per-game banner if URL already has an ID ──────────────
   useEffect(() => {
-    let active = true;
+    if (!urlGameId) return;
+    let alive = true;
     (async () => {
       try {
-        const gameData = await fetchDescription();
-        if (active) {
-          setDescription(gameData.description);
-          setTitle(gameData.title);
-          setGameId(gameData.gameId);
-        }
-      } catch (err) {
-        console.error("Failed to fetch description", err);
+        const data = await getDescription(urlGameId);
+        if (!alive) return;
+        setTitle(data.title);
+        setDescription(data.description);
+      } catch (e) {
+        console.error("Invalid gameId in URL", e);
+        // optional: redirect to "/" or show 404 splash
       }
     })();
-    return () => (active = false);
-  }, [fetchDescription]);
+    return () => (alive = false);
+  }, [urlGameId]);
 
-  /* -------------------- guard against autostart -------------------- */
-  // Ensure we *only* render GamePage after explicit click.
+  // ── 2.  Start / continue button ─────────────────────────────────────
+  const handleStart = async () => {
+    if (gameId) {                 // a) QR / reload case → just continue
+      setStarted(true);
+      return;
+    }
+
+    setError("Necesitas un enlace de juego. Pide a un organizador.");
+    return;
+  };
+
+  // ── 3.  After click, render <GamePage> ──────────────────────────────
   if (started && gameId) {
     return <GamePage key={gameId} gameId={gameId} />;
   }
 
+  // ── UI (unchanged apart from button handler) ────────────────────────
   return (
     <div className={styles.root}>
-      {/* decorative particles omitted for brevity – same as before */}
-
       <div className={styles.container}>
-        <motion.div className={styles.card} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-          <motion.h1 className={styles.title} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.2 }}>
-            {title}
-          </motion.h1>
-          <motion.p className={styles.description} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.8 }}>
-            {description || "Loading game description..."}
+        <motion.div /* … animations as before … */ className={styles.card}>
+          <motion.h1 className={styles.title}>{title}</motion.h1>
+          <motion.p className={styles.description}>
+            {description || "Loading game description…"}
           </motion.p>
 
           <motion.button
-            onClick={() => setStarted(true)}
+            onClick={handleStart}
             className={styles.startButton}
-            disabled={!gameId}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
+            disabled={loading}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            START GAME
+            {loading ? "STARTING…" : gameId ? "CONTINUE" : "START GAME"}
             <span className={styles.shine} />
           </motion.button>
         </motion.div>

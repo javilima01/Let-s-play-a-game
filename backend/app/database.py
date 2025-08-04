@@ -3,8 +3,12 @@ import os
 from functools import lru_cache
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
-MONGO_URL: str = os.getenv("MONGO_URL", "mongodb://localhost:27017")
-DB_NAME: str = os.getenv("MONGO_DB", "quizgame")
+MONGO_URL = os.getenv(
+    "MONGODB_URI",
+    "mongodb://root:example@localhost:27017/?authSource=admin",
+)
+DB_NAME = "quizduel"
+
 
 @lru_cache
 def get_client() -> AsyncIOMotorClient:

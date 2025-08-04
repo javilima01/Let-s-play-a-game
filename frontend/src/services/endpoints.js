@@ -27,8 +27,10 @@ async function request(path, { method = "GET", body, headers = {}, ...rest } = {
 }
 
 // --- Meta ------------------------------------------------------
-export const getDescription = () => request("/description");
-export const startGame = (gameId) => request(`/start/${gameId}`, { method: "POST" });
+export const getDescription = (gameId) =>
+  request(`/description/${gameId}`);          // <-- accepts id now
+// export const createGame   = () => request("/games", { method: "POST" });
+export const startGame    = (id) => request(`/start/${id}`, { method: "POST" });
 export const getRotatingMessages = () => request("/messages");
 
 // --- Gameplay --------------------------------------------------
@@ -39,6 +41,7 @@ export const confirmChallenge = (gameId, step, opponentId) =>
 
 export default {
   getDescription,
+  // createGame, // NEW
   startGame,
   getRotatingMessages,
   getStep,

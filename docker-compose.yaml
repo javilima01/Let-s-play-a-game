@@ -1,0 +1,13 @@
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: quizduel-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"   # host:container
+    volumes:
+      - mongo-data:/data/db
+    command: mongod --bind_ip_all   # ← nothing else
+
+volumes:
+  mongo-data:
