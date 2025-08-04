@@ -1,0 +1,269 @@
+.root {
+    position: relative;
+    width: 100%;
+    min-height: 26rem;
+    width: 100vw;
+}
+
+/* 1 ▸ grid of opponents */
+.grid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.5rem, 2.5vw, 1rem);
+    padding: clamp(.5rem, 3vw, 1rem);
+    max-height: calc(100vh - var(--top-bar-h) - 4rem);
+    overflow-y: auto;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .35rem;
+    border: none;
+    background: var(--neutral-mid);
+    padding: 2rem 1.5rem;
+    border-radius: .9rem;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, .35);
+    transition: transform .12s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+}
+
+.card img {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.card span {
+    color: #fff;
+    font-size: .9rem;
+}
+
+.modal {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: var(--top-bar-h);
+    height: calc(100vh - var(--top-bar-h, 0));
+    /* full‑screen on phones, centred box on wider screens */
+    margin: 0 auto;
+    padding: 1.25rem clamp(1rem, 4vw, 2rem) 2rem;
+    overflow-y: auto;
+    border-radius: clamp(0px, 2vw, 1rem);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
+}
+
+.modal header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.modal header img {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, .4);
+}
+
+.modal h2 {
+    margin-top: .75rem;
+    font-size: 1.35rem;
+    color: white;
+}
+
+.stats {
+    list-style: none;
+    padding: 0 0 0.5rem;
+    margin: 1.25rem 0 2rem;
+    flex: 1;
+    overflow-y: auto;
+    color: white;
+}
+
+.stats li {
+    display: flex;
+    justify-content: space-between;
+}
+
+footer {
+    margin-top: auto;
+    display: flex;
+    gap: .75rem;
+}
+
+.back,
+.play {
+    flex: 1;
+    padding: .6rem 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: .75rem;
+    cursor: pointer;
+}
+
+.back {
+    background: var(--white-trans);
+    color: #eee;
+}
+
+.play {
+    background: var(--primary);
+    color: #fff;
+}
+
+/* 3 ▸ VS screen */
+.vs {
+    padding: clamp(1.25rem, 4vh, 2.75rem) 0;
+    width: 100vw;
+}
+
+.av {
+    width: clamp(4.5rem, 24vw, 7rem);
+    height: clamp(4.5rem, 24vw, 7rem);
+}
+
+.vsLabel {
+    font-size: clamp(1.75rem, 10vw, 3rem);
+}
+
+.ref {
+    margin-top: 3.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* tiny screen love */
+
+/* 🔽 append to the bottom of the file */
+
+.loaderMini {
+    width: 2rem;
+    height: 2rem;
+    margin: 1.5rem auto 2rem;
+    border: 3px solid var(--primary-light);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+.stats li {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: .75rem;
+}
+
+.label {
+    text-transform: capitalize;
+    opacity: .8;
+    font-size: .85rem;
+}
+
+.barOuter {
+    position: relative;
+    height: 1.25rem;
+    background: var(--white-trans);
+    border-radius: .5rem;
+    overflow: hidden;
+}
+
+.barInner {
+    height: 100%;
+    border-radius: .5rem 0 0 .5rem;
+    transition: width .35s ease;
+}
+
+.value {
+    position: absolute;
+    right: .4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: .7rem;
+    font-weight: 600;
+}
+
+.bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.07;
+    pointer-events: none;
+}
+
+/* floating fighter silhouette */
+.fighter {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 45%;
+    max-width: 10rem;
+    opacity: 0.28;
+    filter: brightness(1.3);
+    pointer-events: none;
+    z-index: 2;
+    /* ↰ ensures it’s above .bg swirl */
+}
+
+/* avatar + name */
+.header {
+    position: relative;
+    text-align: center;
+    margin-bottom: 1.75rem;
+}
+
+.avatar {
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+h2 {
+    margin-top: 0.75rem;
+    font-size: 1.45rem;
+    letter-spacing: 0.3px;
+}
+
+/* existing stats + bar styles remain unchanged   */
+/* …                                          … */
+
+/* buttons */
+footer {
+    display: flex;
+    gap: 0.85rem;
+    margin-top: 1.25rem;
+}
+
+.play:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* small phones tweak */
+@media (max-width: 500px) {
+    .fighter {
+        width: 55%;
+    }
+
+    .avatar {
+        width: 4.75rem;
+        height: 4.75rem;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+}

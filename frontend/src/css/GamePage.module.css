@@ -1,0 +1,111 @@
+
+:root {
+  --primary: #1e90ff;
+  --primary-light: #5ec1ff;
+  --neutral-dark: #0b0f17;
+  --neutral-mid: #1f2937;
+  --white-trans: rgba(255, 255, 255, 0.1);
+  --white-trans-strong: rgba(255, 255, 255, 0.2);
+}
+
+.root {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--neutral-dark), var(--neutral-mid));
+  overflow: hidden;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  margin: 0 1rem;
+}
+
+/* Progress panel */
+.progressBtn {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-size: 1.5rem;
+  width: 3rem;
+  height: 3rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: var(--neutral-mid);
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.progressBtn:hover {
+  background: var(--primary);
+}
+
+.progressPanel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100%;
+  padding: 2rem 1.5rem;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--white-trans-strong);
+  box-shadow: 6px 0 24px rgba(0, 0, 0, 0.4);
+  color: white;
+}
+
+/* Loader */
+.loader {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid var(--primary-light);
+  border-top-color: transparent;
+  border-radius: 50%;
+  margin: 5rem auto;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 3.75rem;
+  height: 3.75rem;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(45deg, var(--primary), var(--primary-light));
+  color: #fff;
+  display: flex;              /* perfect centring */
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+  transition: transform 0.15s;
+  line-height: 0;
+}
+
+.fab:hover {
+  transform: scale(1.07);
+}
+
+.fab svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2.25;
+  pointer-events: none;       /* keep clicks on the button */
+}
+.stageWide {
+  max-width: none;   /* override the 680 px cap */
+  margin: 0;         /* flush to viewport edges */
+}

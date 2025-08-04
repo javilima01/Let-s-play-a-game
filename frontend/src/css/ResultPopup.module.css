@@ -1,0 +1,58 @@
+:root {
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.popup {
+  width: 90%;
+  max-width: 360px;
+  padding: 2rem 1.5rem;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--white-trans-strong);
+  border-radius: 1.5rem;
+  text-align: center;
+  color: white;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.popup h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.popup p {
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 1rem;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.primaryBtn {
+  background: linear-gradient(45deg, var(--primary), var(--primary-light));
+  color: white;
+}
+
+.secondaryBtn {
+  background: var(--neutral-mid);
+  color: white;
+}
