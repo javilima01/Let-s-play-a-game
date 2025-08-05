@@ -2,7 +2,6 @@
 from datetime import datetime, timezone
 from typing import List
 
-from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, Body, Path, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
@@ -48,14 +47,14 @@ async def patch_step(
     patch: StepPatch = Body(...),
     service: GameService = Depends(svc),
 ):
-    doc = await service.update_step(ObjectId(step_id), patch.model_dump(exclude_none=True))
+    doc = await service.update_step(step_id, patch.model_dump(exclude_none=True))
     if not doc:
         raise HTTPException(404, "Step not found")
     return doc
 
 @router.delete("/steps/{step_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_step(step_id: str, service: GameService = Depends(svc)):
-    deleted = await service.delete_step(ObjectId(step_id))
+    deleted = await service.delete_step(step_id)
     if not deleted:
         raise HTTPException(404, "Step not found")
 

@@ -185,22 +185,6 @@ const styles = {
     boxShadow: 'inset 0 0 15px rgba(255, 255, 255, 0.3)',
     pointerEvents: 'none'
   },
-  // leftAccent: {
-  //   position: 'absolute',
-  //   left: 0,
-  //   top: 0,
-  //   bottom: 0,
-  //   width: '32px',
-  //   background: '#1E90FF'
-  // },
-  // rightAccent: {
-  //   position: 'absolute',
-  //   right: 0,
-  //   top: 0,
-  //   bottom: 0,
-  //   width: '32px',
-  //   background: '#1E90FF'
-  // },
   messageContainer: {
     width: '100%',
     padding: '0 32px',

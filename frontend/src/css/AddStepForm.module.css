@@ -1,0 +1,59 @@
+:root {
+    --primary: #1e90ff;
+    --primary-light: #5ec1ff;
+    --white-trans: rgba(255, 255, 255, 0.1);
+    --white-trans-strong: rgba(255, 255, 255, 0.2);
+}
+
+/* glassy dialog body */
+.dialog {
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid var(--white-trans-strong);
+    backdrop-filter: blur(20px);
+    border-radius: 1.25rem;
+    width: 100%;
+    max-width: 32rem;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+/* header */
+.dialogHeader {
+    margin-bottom: 1.25rem;
+}
+
+.dialogTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* generic field wrapper */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+/* primary CTA button */
+.primaryBtn {
+    padding: 0.5rem 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(45deg, var(--primary), var(--primary-light));
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(30, 144, 255, 0.4);
+    transition: transform 0.15s ease;
+}
+
+.primaryBtn:hover {
+    transform: translateY(-2px);
+}

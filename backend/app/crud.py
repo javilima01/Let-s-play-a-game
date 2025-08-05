@@ -5,7 +5,6 @@ from .schemas import (
     DescriptionResponse, PlayerInfoResponse, QuestionStep,
     ChallengeStep, StartGameResponse
 )
-from bson import ObjectId
 
 
 aSYNC = Union[QuestionStep, ChallengeStep]

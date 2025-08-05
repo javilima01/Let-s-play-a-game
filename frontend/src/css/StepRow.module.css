@@ -1,0 +1,155 @@
+:root {
+  --primary: #1e90ff;
+  --primary-light: #5ec1ff;
+  --white-trans: rgba(255 255 255 / 0.1);
+  --white-trans-strong: rgba(255 255 255 / 0.2);
+}
+
+/* ── outer card (sortable li) ───────────────────────────────────────── */
+.row {
+  position: relative;
+  border: 1px solid var(--white-trans-strong);
+  background: rgba(31 41 55 / 0.85);
+  border-radius: 1rem;
+  backdrop-filter: blur(12px);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.row:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -8px rgba(0 0 0 / 0.5);
+}
+
+/* neon accent bar (hidden by default) */
+.row::before {
+  content: "";
+  position: absolute;
+  inset: 0 100% 0 0;       /* width 0 */
+  background: linear-gradient(
+    180deg,
+    var(--primary) 0%,
+    var(--primary-light) 100%
+  );
+  border-radius: 1rem 0 0 1rem;
+  transition: inset 0.25s ease;
+}
+.row:hover::before,
+.row.open::before {
+  inset: 0 96% 0 0;         /* ~4% wide strip */
+}
+
+/* ── header (grab handle) ──────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  cursor: grab;
+  user-select: none;
+  background: linear-gradient(
+    90deg,
+    rgba(255 255 255 / 0.03),
+    rgba(255 255 255 / 0.0)
+  );
+  transition: background 0.25s ease;
+}
+.row.open .header {
+  background: linear-gradient(
+    90deg,
+    rgba(30 144 255 / 0.12),
+    rgba(255 255 255 / 0.00)
+  );
+}
+
+.title {
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+
+.subtitle {
+  flex: 1;
+  margin-left: 0.5rem;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 0;
+  border-radius: 0.5rem;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.deleteBtn:hover {
+  background: var(--white-trans);
+  transform: rotate(-15deg);
+}
+
+/* ── collapsible body ─────────────────────────────────────────────── */
+.body {
+  padding: 1rem 1rem 1.25rem;
+  border-top: 1px solid var(--white-trans);
+  display: grid;
+  gap: 1rem;
+}
+
+/* 1-col phones, 2-col tablets, 3-col desktop for msg fields */
+@media (min-width: 640px) {
+  .body.gridCols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .body.gridCols {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* give inner inputs the same glass tone */
+input, textarea {
+  background: rgba(255 255 255 / 0.04);
+  border-color: var(--white-trans);
+}
+
+/* glassy inputs / textareas */
+.glassField {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.875rem;
+  color: #fff;
+  background: rgba(255 255 255 / 0.06);
+  border: 1px solid var(--white-trans);
+  border-radius: 0.65rem;
+  backdrop-filter: blur(8px);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background 0.25s ease;
+}
+.glassField::placeholder {
+  color: #94a3b8;
+}
+.glassField:focus {
+  outline: none;
+  border-color: var(--primary-light);
+  background: rgba(255 255 255 / 0.09);
+  box-shadow: 0 0 0 2px rgba(30 144 255 / 0.35);
+}

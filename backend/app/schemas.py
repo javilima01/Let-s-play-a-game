@@ -18,6 +18,7 @@ class QuestionMessages(BaseModel):
 class QuestionStep(BaseModel):
     type: Literal["question"] = "question"
     step: int
+    stepId: str
     question: str
     timeLimit: int
     messages: QuestionMessages
@@ -43,7 +44,7 @@ class Opponent(PlayerMini):
 class ChallengeStep(BaseModel):
     type: Literal["challenge"] = "challenge"
     step: int
-    challengeId: str
+    stepId: str
     player: PlayerMini
     opponents: List[Opponent]
 

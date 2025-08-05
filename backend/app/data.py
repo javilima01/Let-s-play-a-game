@@ -46,7 +46,7 @@ def sample_challenge(game_id: str, step: int) -> ChallengeStep:
         for i, name in enumerate(["Alex", "Sam", "Chris", "Jordan"], start=1)
     ]
     return ChallengeStep(
-        challengeId=f"{game_id}-{step}",
+        stepId=f"{game_id}-{step}",
         player=PlayerMini(id="me", name="You", photo="/assets/me.png"),
         opponents=opponents
     )

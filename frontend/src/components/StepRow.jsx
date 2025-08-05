@@ -1,7 +1,7 @@
-// src/components/StepRow.jsx
-import { useEffect, useState } from "react";
+/* src/components/StepRow.jsx */
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { GripVertical, Trash2 } from "lucide-react";
+import { Trash2, GripVertical } from "lucide-react";
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -10,83 +10,106 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { csvToOpponents, opponentsToCsv } from "@/services/utils";
+import rowCss from "@/css/StepRow.module.css";         // ← import the module
 
-export default function StepRow({ step, onUpdate, onDelete, dragAttributes }) {
+export default function StepRow({ step, onUpdate, onDelete }) {
   const [open, setOpen] = useState(false);
 
-  const { register, watch, setValue, formState } = useForm({
-    defaultValues: step,
-  });
+  /* form setup (unchanged) */
+  const defaultValues =
+    step.type === "challenge"
+      ? { ...step, opponentsCsv: opponentsToCsv(step.opponents ?? []) }
+      : step;
 
-  // debounced autosave
+  const {
+    register,
+    watch,
+    setValue,
+    reset,
+    formState: { isDirty },
+  } = useForm({ defaultValues });
+
+  const watched = watch();
+
+  const getSanitized = () =>
+    watched.type === "challenge"
+      ? { ...watched, opponents: csvToOpponents(watched.opponentsCsv ?? "") }
+      : watched;
+
   useEffect(() => {
-    if (!formState.isDirty) return;
-    const t = setTimeout(() => onUpdate(watch()), 400);
+    if (!isDirty) return;
+    const t = setTimeout(() => {
+      const payload = getSanitized();
+      onUpdate(payload);
+      reset(payload);
+    }, 500);
     return () => clearTimeout(t);
-  }, [watch(), formState.isDirty]);
+  }, [isDirty]);
 
+  const optionKey = (opt, i) => `${step.stepId || step._id}-${opt.id ?? i}`;
   return (
     <Collapsible open={open} onOpenChange={setOpen} asChild>
-      <div>
-        <Card className="cursor-default">
+      {/* add .open class when expanded */}
+      <div className={`${rowCss.row} ${open ? rowCss.open : ""}`}>
+        <Card className="cursor-grab">
           <CardContent className="p-0">
-            {/* Header */}
-            <div className="flex items-center gap-3 p-3">
-              {/* drag handle */}
-              <span
-                {...dragAttributes}
-                className="cursor-grab text-muted-foreground hover:text-primary"
-              >
-                <GripVertical size={18} />
-              </span>
+            {/* header */}
+            <div className={rowCss.header}>
+              <GripVertical size={18} className="text-muted-foreground" />
 
-              {/* summary toggle */}
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="flex-1 justify-start text-left"
+                  className="flex-1 justify-start text-left p-0"
                 >
-                  <span className="font-medium">
+                  <span className={rowCss.title}>
                     {step.type.toUpperCase()} #{step.step}
                   </span>
-                  <span className="ml-2 truncate text-muted-foreground">
+                  <span className={rowCss.subtitle}>
                     {step.type === "question"
                       ? step.question
-                      : `vs ${step.opponents?.length ?? 0} opponents`}
+                      : `vs ${step.opponents?.length ?? 0} opps`}
                   </span>
                 </Button>
               </CollapsibleTrigger>
 
-              {/* delete */}
-              <Button
-                size="icon"
-                variant="ghost"
+              <button
+                className={rowCss.deleteBtn}
                 onClick={onDelete}
-                aria-label="Delete step"
+                aria-label="Delete"
               >
-                <Trash2 className="text-destructive" size={18} />
-              </Button>
+                <Trash2 size={18} className="text-destructive" />
+              </button>
             </div>
 
-            {/* Editor */}
+            {/* body */}
             <CollapsibleContent>
-              {step.type === "question" && (
-                <div className="space-y-4 p-4 border-t">
-                  <label className="block space-y-1">
-                    <span className="text-sm font-medium">Question</span>
-                    <Input {...register("question")} />
+              {watched.type === "question" && (
+                <div className={`${rowCss.body} ${rowCss.gridCols}`}>
+                  <label className={rowCss.label}>
+                    Question
+                    <Textarea {...register("question")} className={rowCss.glassField} />
                   </label>
 
-                  <label className="block space-y-1">
-                    <span className="text-sm font-medium">Time limit (ms)</span>
-                    <Input type="number" {...register("timeLimit")} />
+                  <label className={rowCss.label}>
+                    Time limit (ms)
+                    <Input type="number" {...register("timeLimit")} className={rowCss.glassField} />
                   </label>
 
-                  <div className="space-y-2">
-                    <span className="text-sm font-medium">Options</span>
-                    {watch("options").map((opt, i) => (
-                      <div key={opt.id ?? i} className="flex items-center gap-2">
+                  {["intro", "correct", "wrong"].map((k) => (
+                    <label key={k} className={rowCss.label}>
+                      {k} message
+                      <Input {...register(`messages.${k}`)} className={rowCss.glassField} />
+                    </label>
+                  ))}
+
+                  <div className="col-span-full space-y-2">
+                    <span className={rowCss.label}>Options</span>
+                    {watched.options?.map((opt, i) => (
+                      <div key={optionKey(opt, i)} className={rowCss.optionRow}>
                         <Switch
                           checked={opt.correct}
                           onCheckedChange={(v) =>
@@ -105,26 +128,15 @@ export default function StepRow({ step, onUpdate, onDelete, dragAttributes }) {
                 </div>
               )}
 
-              {step.type === "challenge" && (
-                <div className="space-y-4 p-4 border-t">
-                  {/* Later replace with autocomplete components */}
-                  <label className="block space-y-1">
-                    <span className="text-sm font-medium">Player ID</span>
-                    <Input {...register("player.id")} />
+              {watched.type === "challenge" && (
+                <div className={rowCss.body}>
+                  <label className={rowCss.label}>
+                    Player ID
+                    <Input className={rowCss.glassField} {...register("player.id")} />
                   </label>
-                  <label className="block space-y-1">
-                    <span className="text-sm font-medium">Opponent IDs (csv)</span>
-                    <Input
-                      {...register("opponents")}
-                      placeholder="id1,id2,id3"
-                      onBlur={(e) =>
-                        setValue(
-                          "opponents",
-                          e.target.value.split(",").map((t) => t.trim()),
-                          { shouldDirty: true },
-                        )
-                      }
-                    />
+                  <label className={rowCss.label}>
+                    Opponent IDs (csv)
+                    <Input {...register("opponentsCsv")} />
                   </label>
                 </div>
               )}

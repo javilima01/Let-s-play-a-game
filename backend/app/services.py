@@ -168,6 +168,7 @@ class GameService:
         doc = self._strip_id(doc)
         if not doc:
             return None
+        print(doc)
         return QuestionStep(**doc) if doc["type"] == "question" else ChallengeStep(**doc)
 
     # ----------------------------------------------------------
@@ -224,7 +225,7 @@ class GameService:
         """
         from pymongo import UpdateOne
         ops = [
-            UpdateOne({"_id": ObjectId(m["_id"]), "gameId": game_id},
+            UpdateOne({"gameId": game_id, "stepId": m["stepId"]},
                       {"$set": {"step": m["step"]}})
             for m in moves
         ]
@@ -252,24 +253,50 @@ class GameService:
         # what the admin dashboard expects:
         return {"gameId": game_id, "title": title, "description": desc}
 
-    async def update_step(self, step_id: ObjectId, patch: dict) -> dict | None:
+    async def update_step(self, step_id: str, patch: dict) -> dict | None:
         """
         Partial update (PATCH) of a single step.
         Returns the updated doc with _id stripped, or None if not found.
         """
         doc = await self.db.steps.find_one_and_update(
-            {"_id": step_id},
+            {"stepId": step_id},
             {"$set": patch},
             return_document=ReturnDocument.AFTER,
         )
         return self._strip_id(doc) if doc else None
 
-    async def delete_step(self, step_id: ObjectId) -> int:
+    async def delete_step(self, step_id: str) -> int:
         """
-        Hard-delete one step. Returns the deleted_count (0 | 1).
+        Delete one step and renumber the remaining steps of the same game.
+
+        Returns
+        -------
+        int
+            1 if a document was deleted, 0 otherwise.
         """
-        res = await self.db.steps.delete_one({"_id": step_id})
-        return res.deleted_count
+        # 1) fetch the step so we know its game & position
+        doc = await self.db.steps.find_one(
+            {"stepId": step_id},
+            projection={"gameId": 1, "step": 1},
+        )
+        if not doc:
+            return 0
+
+        game_id = doc["gameId"]
+        removed_idx = doc["step"]
+
+        # 2) delete that step
+        delete_res = await self.db.steps.delete_one({"stepId": step_id})
+        if delete_res.deleted_count == 0:
+            return 0
+
+        # 3) shift every later step down by 1
+        await self.db.steps.update_many(
+            {"gameId": game_id, "step": {"$gt": removed_idx}},
+            {"$inc": {"step": -1}},
+        )
+
+        return delete_res.deleted_count
 
     async def update_game_meta(self, game_id: str, patch: dict) -> dict | None:
         """

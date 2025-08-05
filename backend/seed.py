@@ -84,6 +84,7 @@ seed_data = {
         # Step 1 – normal question
         {
             "gameId": "9b59e273f9b54bdabdfa7ddc44d5d4ac",
+            "stepId": "demo-001-question-0",
             "step": 0,
             "type": "question",
             "question": (
@@ -107,7 +108,7 @@ seed_data = {
             "gameId": "9b59e273f9b54bdabdfa7ddc44d5d4ac",
             "step": 1,
             "type": "challenge",
-            "challengeId": "demo-001-5",
+            "stepId": "demo-001-challenge-1",
             "player": {"id": "me", "name": "You", "photo": "/assets/me.png"},
             "opponents": [
                 {
