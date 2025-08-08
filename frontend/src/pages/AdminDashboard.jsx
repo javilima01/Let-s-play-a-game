@@ -14,6 +14,7 @@ import {
   DialogActions,
   TextField,
 } from '@mui/material';
+import { v4 as uuidv4 } from 'uuid';
 
 /* DnD Kit */
 import {
@@ -171,7 +172,7 @@ export default function AdminDashboard() {
   const handleCreateStep = useCallback(async payload => {
     const created = await createAdminStep(
       selected.gameId,
-      { ...payload, stepId: crypto.randomUUID(), step: steps.length }
+      { ...payload, stepId: uuidv4(), step: steps.length }
     );
     setSteps(s => [...s, created]);
   }, [selected, steps.length]);

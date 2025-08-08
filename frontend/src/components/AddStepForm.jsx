@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import StepForm from './StepForm';
+import { v4 as uuidv4 } from 'uuid';
 
 const glassTheme = createTheme({
   palette: {
@@ -49,7 +50,7 @@ export default function AddStepForm({ onCreate }) {
   const [open, setOpen] = useState(false);
 
   const handleCreate = (payload) => {
-    payload.stepId = crypto.randomUUID();
+    payload.stepId = uuidv4();
     onCreate(payload);
     setOpen(false);
   };
