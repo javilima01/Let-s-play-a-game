@@ -40,8 +40,8 @@ export default function StepForm({
         text: '',
         correct: i === 0,
       })),
-    player: { id: vals.player?.id ?? '' },
-    opponentsCsv: vals.opponents?.map((o) => o.id).join(', ') ?? '',
+    // player: { id: vals.player?.id ?? '' },
+    // opponentsCsv: vals.opponents?.map((o) => o.id).join(', ') ?? '',
     clue: vals.clue ?? '',
     challenge_action: vals.challenge_action ?? '',
   };
@@ -77,18 +77,12 @@ export default function StepForm({
         options: values.options,
       });
     } else {
-      const opponents = values.opponentsCsv
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .map((id) => ({ id }));
 
       onSubmit({
         type: 'challenge',
         step: values.step,
         stepId: values.stepId,
-        player: { id: values.player.id },
-        opponents,
+        // player: { id: values.player.id },
         clue: values.clue,
         challenge_action: values.challenge_action,
       });
@@ -177,7 +171,7 @@ export default function StepForm({
         </>
       ) : (
         <>
-          <Box mb={2}>
+          {/* <Box mb={2}>
             <TextField
               label="Player ID"
               fullWidth
@@ -190,7 +184,7 @@ export default function StepForm({
               fullWidth
               {...register('opponentsCsv')}
             />
-          </Box>
+          </Box> */}
 
           <Box mb={2}>
             <TextField

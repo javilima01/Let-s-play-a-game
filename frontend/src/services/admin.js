@@ -1,5 +1,5 @@
 // src/services/admin.js
-const API_BASE = "http://gatitolindo.mooo.com/api";
+const API_BASE = "http://localhost:8001/api";
 
 async function request(
   path,
