@@ -70,12 +70,11 @@ def create_app() -> FastAPI:
     async def start_game(game_id: str, svc: GameService = Depends(get_service)):
         # NEW: ask the DB which steps are challenges
         challenge_steps = await svc.get_challenge_steps(game_id)
-
         await svc.mark_game_started(game_id)
 
         return StartGameResponse(
             gameId=game_id,
-            total=len(challenge_steps),
+            total=len(await svc.get_all_steps(game_id=game_id)),
             challengeSteps=challenge_steps,
         )
 
