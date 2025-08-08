@@ -47,6 +47,8 @@ class ChallengeStep(BaseModel):
     stepId: str
     player: PlayerMini
     opponents: List[Opponent]
+    clue: str
+    challenge_action: str
 
 class GameMetaResponse(BaseModel):
     gameId: str
@@ -55,14 +57,7 @@ class GameMetaResponse(BaseModel):
     total: int
     started: bool | None = None
     createdAt: datetime | None = None
-
-class StepPatch(BaseModel):
-    # all fields optional
-    question: str | None = None
-    timeLimit: int | None = None
-    options: list[QuestionOption] | None = None
-    player: dict | None = None
-    opponents: list[dict] | None = None
+    password: str
 
 StepResponse = Union[QuestionStep, ChallengeStep]
 

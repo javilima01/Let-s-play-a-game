@@ -59,33 +59,6 @@ def create_app() -> FastAPI:
             raise HTTPException(404, "Description not found")
         return doc
 
-    # @app.post("/games", response_model=CreateGameResponse, status_code=201)
-    # async def create_game(svc: GameService = Depends(get_service)):
-    #     cfg = await svc.get_game_config()
-
-    #     # 2. Generate banner text — here we just random-pick but you can do anything
-    #     title, description = await svc.generate_banner_text()
-
-    #     game_id = uuid.uuid4().hex
-    #     await svc.insert_game(
-    #         game_id=game_id,
-    #         title=title,                    # NEW
-    #         description=description,        # NEW
-    #         total=cfg.total,
-    #         challenge_every=cfg.challenge_every,
-    #         created_at=datetime.now(timezone.utc),
-    #     )
-
-    #     # Also save banner into its own collection so other endpoints can reuse it
-    #     await svc.insert_description(game_id, title, description)       # NEW
-
-    #     return {
-    #         "gameId": game_id,
-    #         "title": title,
-    #         "description": description,
-    #     }
-
-
     @app.get("/messages", response_model=List[str])
     async def rotating_messages(svc: GameService = Depends(get_service)):
         return await svc.get_rotating_messages()

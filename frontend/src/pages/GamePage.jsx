@@ -1,5 +1,5 @@
 // src/pages/GamePage.jsx
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import styles from "../css/GamePage.module.css";
 import { getStep, startGame } from "../services/endpoints";
 import Question from "../components/Question";
@@ -9,42 +9,49 @@ import StatsSheet from "../components/StatsSheet";
 import Challenge from "../components/Challenge";
 
 export default function GamePage({ gameId }) {
-  /* ────────────────────────────────
-   *  1.  Rehydrate progress
-   * ──────────────────────────────── */
   const STORAGE_KEY = `quizduel_${gameId}`;
-  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
 
-  const [step, setStep] = useState(saved.step ?? 0);            // 0-based
+  // Lazy initialize from localStorage (client-only)
+  const [step, setStep] = useState(() => {
+    if (typeof window === 'undefined') return 0;
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    return saved.step ?? 0;
+  });
+
   const [attempt, setAttempt] = useState(0);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [totalSteps, setTotalSteps] = useState(saved.total ?? null);
-  const [correctCount, setCorrectCount] = useState(saved.correct ?? 0);
-  const [result, setResult] = useState(null);                   // {correct,message}
+  const [totalSteps, setTotalSteps] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    return saved.total ?? null;
+  });
+  const [correctCount, setCorrectCount] = useState(() => {
+    if (typeof window === 'undefined') return 0;
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    return saved.correct ?? 0;
+  });
+
+  const [result, setResult] = useState(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [finished, setFinished] = useState(false);
 
-  /* ────────────────────────────────
-   *  2.  Fetch meta → total steps
-   * ──────────────────────────────── */
+  // Fetch total steps on mount
   useEffect(() => {
-    if (totalSteps !== null) return;        // already hydrated
+    if (totalSteps !== null) return;
     let alive = true;
     (async () => {
       try {
-        const { total } = await startGame(gameId); // idempotent
+        const { total } = await startGame(gameId);
         if (alive) setTotalSteps(total);
       } catch (err) {
         console.error("startGame failed", err);
       }
     })();
-    return () => (alive = false);
+    return () => { alive = false; };
   }, [gameId, totalSteps]);
 
-  /* ────────────────────────────────
-   *  3.  Load current step data
-   * ──────────────────────────────── */
+  // Fetch current step data
   const fetchStep = useCallback(async () => {
     if (totalSteps !== null && step >= totalSteps) {
       setFinished(true);
@@ -65,9 +72,7 @@ export default function GamePage({ gameId }) {
     fetchStep();
   }, [step, attempt, fetchStep]);
 
-  /* ────────────────────────────────
-   *  4.  Persist progress
-   * ──────────────────────────────── */
+  // Persist progress
   useEffect(() => {
     if (finished) {
       localStorage.removeItem(STORAGE_KEY);
@@ -75,11 +80,9 @@ export default function GamePage({ gameId }) {
     }
     const payload = { step, total: totalSteps, correct: correctCount };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }, [step, totalSteps, correctCount, finished, STORAGE_KEY]);
+  }, [step, totalSteps, correctCount, finished]);
 
-  /* ────────────────────────────────
-   *  5.  Handlers
-   * ──────────────────────────────── */
+  // Handlers
   const handleQuestionAnswered = ({ correct, message }) => {
     setResult({ correct, message });
   };
@@ -89,18 +92,16 @@ export default function GamePage({ gameId }) {
       setCorrectCount((c) => c + 1);
       setStep((s) => s + 1);
     } else {
-      setAttempt((a) => a + 1); // retry same step
+      setAttempt((a) => a + 1);
     }
     setResult(null);
   };
 
-  const handleChallengeDone = () => {
-    setStep((s) => s + 1);
+  const handleChallengeDone = ({ correct, message }) => {
+    setResult({ correct, message });
   };
 
-  /* ────────────────────────────────
-   *  6.  Render
-   * ──────────────────────────────── */
+  // Render
   if (finished) {
     return (
       <div className={styles.root}>
@@ -133,13 +134,14 @@ export default function GamePage({ gameId }) {
         onClose={() => setSheetOpen(false)}
         correct={correctCount}
         total={totalSteps}
-        step={step + 1} /* human-readable */
+        step={step + 1}
       />
 
       {/* Stage */}
       <div className={`${styles.stage} ${
         data?.type === "challenge" ? styles.stageWide : ""
-      }`}>
+      }`}
+      >
         {loading && <QuestionSkeleton />}
 
         {!loading && data?.type === "question" && (
@@ -150,12 +152,16 @@ export default function GamePage({ gameId }) {
           />
         )}
 
-        {!loading && data?.type === "challenge" && (
+        {!loading && data?.type === "challenge" && data && (
           <Challenge
             key={`challenge-${step}`}
-            data={data}
+            player={data.player}
+            opponents={data.opponents}
+            clue={data.clue}
+            challengeAction={data.challenge_action}
             gameId={gameId}
             onComplete={handleChallengeDone}
+            stepId={data?.stepId}
           />
         )}
       </div>

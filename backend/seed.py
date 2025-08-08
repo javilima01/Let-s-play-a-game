@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.database import MONGO_URL, DB_NAME
+
 # ─── SEED DOCUMENTS ───────────────────────────────────────────────────────────
 NOW = datetime.now(timezone.utc)
 
@@ -30,7 +31,7 @@ seed_data = {
             "description": (
                 "Responde preguntas, reta a tus amigos y acumula puntos "
                 "para celebrar por todo lo alto."
-            ),
+            )
         }
     ],
     # ── Game metadata (includes the banner, so admin panels can show it)
@@ -45,6 +46,7 @@ seed_data = {
             "total": 25,
             "createdAt": NOW,
             "started": False,
+            "password": "felicidades"
         }
     ],
     # ── Optional global defaults for *future* games created via POST /games
@@ -79,9 +81,9 @@ seed_data = {
             "stats": {"strength": 68, "agility": 65, "intelligence": 66},
         },
     ],
-    # ── Steps for the demo game (step index is 1-based here)
+    # ── Steps for the demo game (step index is 0-based here)
     "steps": [
-        # Step 1 – normal question
+        # Step 0 – normal question
         {
             "gameId": "9b59e273f9b54bdabdfa7ddc44d5d4ac",
             "stepId": "demo-001-question-0",
@@ -103,12 +105,12 @@ seed_data = {
                 {"id": 4, "text": "0",  "correct": False},
             ],
         },
-        # Step 5 – first challenge
+        # Step 1 – first challenge
         {
             "gameId": "9b59e273f9b54bdabdfa7ddc44d5d4ac",
+            "stepId": "demo-001-challenge-1",
             "step": 1,
             "type": "challenge",
-            "stepId": "demo-001-challenge-1",
             "player": {"id": "me", "name": "You", "photo": "/assets/me.png"},
             "opponents": [
                 {
@@ -124,6 +126,9 @@ seed_data = {
                     "stats": {"wins": 22, "losses": 8, "rating": 1585},
                 },
             ],
+            # New fields to satisfy ChallengeStep schema
+            "clue": "¿A quién desafiarás en esta ronda?",
+            "challenge_action": "desafiar",
         },
     ],
 }

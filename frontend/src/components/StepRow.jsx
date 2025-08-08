@@ -1,149 +1,116 @@
-/* src/components/StepRow.jsx */
-import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { Trash2, GripVertical } from "lucide-react";
+// src/components/StepRow.jsx
+import React, { useState, useMemo } from 'react';
 import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { csvToOpponents, opponentsToCsv } from "@/services/utils";
-import rowCss from "@/css/StepRow.module.css";         // ← import the module
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  ThemeProvider,
+  createTheme,
+} from '@mui/material';
+import { Trash2, GripVertical } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button as UiButton } from '@/components/ui/button';
+import StepForm from './StepForm';
+import styles from '@/css/StepRow.module.css';
 
+// Glass theme for the edit dialog
+const glassTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: { main: '#1e90ff', light: '#5ec1ff' },
+    background: { paper: 'rgba(15 23 42 / 0.85)' },
+    text: { primary: '#fff' },
+  },
+  shape: { borderRadius: 20 },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+          border: '1px solid var(--white-trans-strong)',
+          backdropFilter: 'blur(16px)',
+          boxShadow: '0 15px 35px -10px rgba(0 0 0 / 0.55)',
+        },
+      },
+    },
+  },
+});
+
+/**
+ * StepRow renders a draggable step summary. Clicking the header
+ * opens the StepForm dialog for editing.
+ * Wrapped by SortableItem which provides the <li>.
+ */
 export default function StepRow({ step, onUpdate, onDelete }) {
-  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
 
-  /* form setup (unchanged) */
-  const defaultValues =
-    step.type === "challenge"
-      ? { ...step, opponentsCsv: opponentsToCsv(step.opponents ?? []) }
-      : step;
+  // Memoized save handler to avoid re-creating on render
+  const handleSave = useMemo(
+    () => (updated) => {
+      onUpdate(step.stepId, updated);
+      setEditing(false);
+    },
+    [onUpdate, step.stepId]
+  );
 
-  const {
-    register,
-    watch,
-    setValue,
-    reset,
-    formState: { isDirty },
-  } = useForm({ defaultValues });
-
-  const watched = watch();
-
-  const getSanitized = () =>
-    watched.type === "challenge"
-      ? { ...watched, opponents: csvToOpponents(watched.opponentsCsv ?? "") }
-      : watched;
-
-  useEffect(() => {
-    if (!isDirty) return;
-    const t = setTimeout(() => {
-      const payload = getSanitized();
-      onUpdate(payload);
-      reset(payload);
-    }, 500);
-    return () => clearTimeout(t);
-  }, [isDirty]);
-
-  const optionKey = (opt, i) => `${step.stepId || step._id}-${opt.id ?? i}`;
   return (
-    <Collapsible open={open} onOpenChange={setOpen} asChild>
-      {/* add .open class when expanded */}
-      <div className={`${rowCss.row} ${open ? rowCss.open : ""}`}>
+    <>
+      <div className={styles.row}>
         <Card className="cursor-grab">
           <CardContent className="p-0">
-            {/* header */}
-            <div className={rowCss.header}>
-              <GripVertical size={18} className="text-muted-foreground" />
+            <div
+              className={styles.header}
+              onClick={() => setEditing(true)}
+            >
+              <GripVertical size={18} className={styles.dragIcon} />
 
-              <CollapsibleTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="flex-1 justify-start text-left p-0"
-                >
-                  <span className={rowCss.title}>
-                    {step.type.toUpperCase()} #{step.step}
-                  </span>
-                  <span className={rowCss.subtitle}>
-                    {step.type === "question"
-                      ? step.question
-                      : `vs ${step.opponents?.length ?? 0} opps`}
-                  </span>
-                </Button>
-              </CollapsibleTrigger>
+              <div className={styles.titleBlock}>
+                <span className={styles.titleText}>
+                  {step.type.toUpperCase()} #{step.step}
+                </span>
+                <span className={styles.subText}>
+                  {step.type === 'question'
+                    ? step.question
+                    : `vs ${step.opponents?.length ?? 0} opponents`}
+                </span>
+              </div>
 
-              <button
-                className={rowCss.deleteBtn}
-                onClick={onDelete}
-                aria-label="Delete"
+              <UiButton
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(step.stepId);
+                }}
+                className={styles.deleteBtn}
               >
-                <Trash2 size={18} className="text-destructive" />
-              </button>
+                <Trash2 size={16} />
+              </UiButton>
             </div>
-
-            {/* body */}
-            <CollapsibleContent>
-              {watched.type === "question" && (
-                <div className={`${rowCss.body} ${rowCss.gridCols}`}>
-                  <label className={rowCss.label}>
-                    Question
-                    <Textarea {...register("question")} className={rowCss.glassField} />
-                  </label>
-
-                  <label className={rowCss.label}>
-                    Time limit (ms)
-                    <Input type="number" {...register("timeLimit")} className={rowCss.glassField} />
-                  </label>
-
-                  {["intro", "correct", "wrong"].map((k) => (
-                    <label key={k} className={rowCss.label}>
-                      {k} message
-                      <Input {...register(`messages.${k}`)} className={rowCss.glassField} />
-                    </label>
-                  ))}
-
-                  <div className="col-span-full space-y-2">
-                    <span className={rowCss.label}>Options</span>
-                    {watched.options?.map((opt, i) => (
-                      <div key={optionKey(opt, i)} className={rowCss.optionRow}>
-                        <Switch
-                          checked={opt.correct}
-                          onCheckedChange={(v) =>
-                            setValue(`options.${i}.correct`, v, {
-                              shouldDirty: true,
-                            })
-                          }
-                        />
-                        <Input
-                          className="flex-1"
-                          {...register(`options.${i}.text`)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {watched.type === "challenge" && (
-                <div className={rowCss.body}>
-                  <label className={rowCss.label}>
-                    Player ID
-                    <Input className={rowCss.glassField} {...register("player.id")} />
-                  </label>
-                  <label className={rowCss.label}>
-                    Opponent IDs (csv)
-                    <Input {...register("opponentsCsv")} />
-                  </label>
-                </div>
-              )}
-            </CollapsibleContent>
           </CardContent>
         </Card>
       </div>
-    </Collapsible>
+
+      {/* Edit dialog for modifying the step */}
+      <ThemeProvider theme={glassTheme}>
+        <Dialog
+          open={editing}
+          onClose={() => setEditing(false)}
+          maxWidth="sm"
+          fullWidth
+          keepMounted
+        >
+          <DialogTitle>Edit Step</DialogTitle>
+          <DialogContent dividers>
+            <StepForm
+              initialValues={step}
+              onCancel={() => setEditing(false)}
+              onSubmit={handleSave}
+              submitLabel="Save"
+            />
+          </DialogContent>
+        </Dialog>
+      </ThemeProvider>
+    </>
   );
 }

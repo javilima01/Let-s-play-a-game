@@ -49,36 +49,14 @@ class GameService:
             doc.pop("_id")
         return doc
 
-    # ----------------------------------------------------------
-    # Description / banner
-    # ----------------------------------------------------------
-    async def generate_banner_text(self) -> tuple[str, str]:
-        """
-        Make your banner unique per session.
-        Demo below: pick a random birthday fun-fact from `messages`.
-        """
-        import random
-
-        default_title = "¡Feliz Cumpleaños!"
-        default_desc = "Responde preguntas y reta a tus amigos."
-
-        # cur = self.db.messages.find({}, {"_id": 0, "text": 1})
-        # messages = [d["text"] async for d in cur]
-        # fun_fact = random.choice(messages) if messages else default_desc
-        return default_title, default_desc
-
-    async def insert_description(self, game_id: str, title: str, desc: str):
-        await self.db.descriptions.insert_one(
-            {"gameId": game_id, "title": title, "description": desc}
-        )
-
     async def get_description(self, game_id: str) -> DescriptionResponse | None:
         """
         Front-end **won’t** call this on the landing page anymore (createGame
         already gives title/desc), but other parts of the app might.
         """
-        doc = await self.db.descriptions.find_one({"gameId": game_id}, {"_id": 0})
-        return DescriptionResponse(**doc) if doc else None
+        doc = await self.db.games.find_one({"gameId": game_id})
+        print(doc)
+        return DescriptionResponse(gameId=doc.get("gameId"), title=doc.get("title"), description=doc.get("description")) if doc else None
 
     async def get_rotating_messages(self) -> List[str]:
         cur = self.db.messages.find({}, {"_id": 0, "text": 1})
@@ -168,9 +146,16 @@ class GameService:
         doc = self._strip_id(doc)
         if not doc:
             return None
-        print(doc)
         return QuestionStep(**doc) if doc["type"] == "question" else ChallengeStep(**doc)
 
+    async def get_step_by_id(
+        self, game_id: str, step_id: str
+    ) -> QuestionStep | ChallengeStep | None:
+        doc = await self.db.steps.find_one({"gameId": game_id, "stepId": step_id})
+        doc = self._strip_id(doc)
+        if not doc:
+            return None
+        return QuestionStep(**doc) if doc["type"] == "question" else ChallengeStep(**doc)
     # ----------------------------------------------------------
     # Challenges
     # ----------------------------------------------------------
@@ -248,8 +233,6 @@ class GameService:
             total=payload.get("total", cfg.total),
             created_at=datetime.now(timezone.utc),
         )
-        await self.insert_description(game_id, title, desc)
-
         # what the admin dashboard expects:
         return {"gameId": game_id, "title": title, "description": desc}
 
@@ -308,3 +291,45 @@ class GameService:
             return_document=ReturnDocument.AFTER,
         )
         return self._strip_id(doc) if doc else None
+
+    async def delete_game(self, game_id: str) -> bool:
+        """
+        Deletes a game and all its related data (description + steps).
+
+        Returns
+        -------
+        bool
+            True if the game meta document was found & deleted, False otherwise.
+        """
+        # 1) remove the game meta
+        delete_res = await self.db.games.delete_one({"gameId": game_id})
+        if delete_res.deleted_count == 0:
+            return False
+
+        # 2) remove any description/banner entry
+        await self.db.descriptions.delete_many({"gameId": game_id})
+
+        # 3) remove all steps belonging to this game
+        await self.db.steps.delete_many({"gameId": game_id})
+
+        return True
+    
+
+    async def verify_step_password(self, game_id: str, step_id: str, pwd: str) -> bool:
+        # Fetch the step document from Mongo
+        doc = await self.db.games.find_one({"gameId": game_id})
+        if not doc:
+            return False
+        # e.g. plain‐text compare, or hashed compare:
+        return doc.get("password") == pwd
+    
+    async def set_rotating_messages(
+        self,
+        messages: List[str]
+    ) -> List[str]:
+        # Remove all existing docs…
+        await self.db.messages.delete_many({})
+        if messages:
+            docs = [{"text": text} for text in messages]
+            await self.db.messages.insert_many(docs)
+        return messages

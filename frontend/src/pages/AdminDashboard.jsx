@@ -1,41 +1,28 @@
 'use client';
 
-/*******************************************************************************************
- * AdminDashboard.jsx – migrated to Material‑UI components + glassy palette
- * -----------------------------------------------------------------------------------------
- * • Replaces shadcn primitives with MUI: Button, TextField, Textarea (multiline TextField),
- *   etc., matching the AddStepForm style.
- * • Keeps existing drag‑and‑drop logic and CSS‑module layout classes (cardGlass, sidebar …).
- * • Local ThemeProvider uses the same glassTheme as AddStepForm for visual consistency.
- *
- * Install once (if you haven’t yet):
- *   npm i @mui/material @emotion/react @emotion/styled
- *******************************************************************************************/
-
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Button,
-  TextField,
   Box,
   Typography,
   ThemeProvider,
   createTheme,
   Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from '@mui/material';
+
+/* DnD Kit */
 import {
-  DndContext,
   PointerSensor,
   useSensor,
   useSensors,
-  closestCenter,
+  TouchSensor,
 } from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { arrayMove } from '@dnd-kit/sortable';
 
 /* API services */
 import {
@@ -47,40 +34,21 @@ import {
   updateAdminStepOrder,
   patchAdminStep,
   deleteAdminStep,
+  deleteAdminGame,    // new import
+  setRotatingMessages
 } from '@/services/admin';
-
-import StepRow from '@/components/StepRow';
-import AddStepForm from '@/components/AddStepForm';
-
-/* utils */
+import {
+  getRotatingMessages
+} from '@/services/endpoints';
 import { csvToOpponents, opponentsToCsv } from '@/services/utils';
 
-/* CSS‑module for layout */
+/* Components */
+import MetaForm from '@/components/MetaForm';
+import StepsPanel from '@/components/StepsPanel';
+
+/* Theme & CSS */
 import dash from '@/css/AdminDashboard.module.css';
 
-/* ──────────────────────────────────────────────────────────────
- * Sortable wrapper for each <li>
- * ─────────────────────────────────────────────────────────── */
-function SortableItem({ id, children }) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    listStyle: 'none',
-  };
-
-  return (
-    <li ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      {children}
-    </li>
-  );
-}
-
-/* ──────────────────────────────────────────────────────────────
- * Glassy dark theme shared with AddStepForm
- * ─────────────────────────────────────────────────────────── */
 const glassTheme = createTheme({
   palette: {
     mode: 'dark',
@@ -97,6 +65,7 @@ const glassTheme = createTheme({
           border: '1px solid var(--white-trans-strong)',
           backdropFilter: 'blur(16px)',
           boxShadow: '0 15px 35px -10px rgba(0 0 0 / 0.55)',
+          height: '100%'
         },
       },
     },
@@ -119,77 +88,125 @@ const glassTheme = createTheme({
   },
 });
 
-/* ──────────────────────────────────────────────────────────────
- * Admin dashboard component
- * ─────────────────────────────────────────────────────────── */
 export default function AdminDashboard() {
-  /* state */
+  /* STATE */
   const [games, setGames] = useState([]);
-  const [selected, setSelected] = useState(null); // game object | null
+  const [selected, setSelected] = useState(null);
   const [steps, setSteps] = useState([]);
   const [loading, setLoading] = useState(false);
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
-
-  /* meta form */
   const [meta, setMeta] = useState({ title: '', description: '', opponents: '' });
   const [savingMeta, setSavingMeta] = useState(false);
+  // ─── ROTATING MESSAGE EDITOR STATE ───────────────────────
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editMessages, setEditMessages] = useState([]);
 
-  /* fetch games on mount */
+  // load existing messages when dialog opens
+  const openEditor = async () => {
+    const msgs = await getRotatingMessages();
+    setEditMessages(msgs);
+    setDialogOpen(true);
+  };
+
+  const saveMessages = async () => {
+    await setRotatingMessages(editMessages);
+    setDialogOpen(false);
+  };
+  // ─────────────────────────────────────────────────────────
+  /* Stable DnD sensors */
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+  );
+
+  /* FETCH GAMES */
   useEffect(() => {
-    (async () => {
-      setGames(await getAdminGames());
-    })();
+    (async () => setGames(await getAdminGames()))();
   }, []);
 
-  /* open game */
-  const openGame = async (game) => {
+  /* OPEN GAME */
+  const openGame = useCallback(async game => {
     setSelected(game);
     setMeta({
-      title: game.title ?? '',
-      description: game.description ?? '',
-      opponents: opponentsToCsv(game.opponents ?? []),
+      title: game.title || '',
+      description: game.description || '',
+      opponents: opponentsToCsv(game.opponents || []),
     });
     setLoading(true);
     const st = await getAdminSteps(game.gameId);
-    setSteps(st.sort((a, b) => a.step - b.step));
+    st.sort((a, b) => a.step - b.step);
+    setSteps(st);
     setLoading(false);
-  };
+  }, []);
 
-  /* save meta */
-  const saveMeta = async () => {
+  /* SAVE META */
+  const saveMeta = useCallback(async () => {
     setSavingMeta(true);
     const payload = {
       title: meta.title,
       description: meta.description,
       opponents: csvToOpponents(meta.opponents),
+      password: meta.password
     };
     await updateAdminGameMeta(selected.gameId, payload);
-    setSelected((g) => ({ ...g, ...payload }));
-    setGames((arr) => arr.map((g) => (g.gameId === selected.gameId ? { ...g, ...payload } : g)));
+    setGames(g => g.map(x => x.gameId === selected.gameId ? { ...x, ...payload } : x));
+    setSelected(s => ({ ...s, ...payload }));
     setSavingMeta(false);
-  };
+  }, [meta, selected]);
 
-  /* reorder steps */
-  const handleDragEnd = async ({ active, over }) => {
+  /* DRAG END */
+  const handleDragEnd = useCallback(async ({ active, over }) => {
     if (!over || active.id === over.id) return;
-    const oldIndex = steps.findIndex((s) => s.stepId === active.id);
-    const newIndex = steps.findIndex((s) => s.stepId === over.id);
-    const reordered = arrayMove(steps, oldIndex, newIndex).map((s, i) => ({ ...s, step: i }));
+    const oldIndex = steps.findIndex(s => s.stepId === active.id);
+    const newIndex = steps.findIndex(s => s.stepId === over.id);
+    const reordered = arrayMove(steps, oldIndex, newIndex)
+      .map((s, i) => ({ ...s, step: i }));
     setSteps(reordered);
     await updateAdminStepOrder(
       selected.gameId,
-      reordered.map(({ stepId, step }) => ({ stepId, step })),
+      reordered.map(({ stepId, step }) => ({ stepId, step }))
     );
-  };
+  }, [steps, selected]);
 
-  /* add step */
-  const handleCreateStep = async (payload) => {
-    const created = await createAdminStep(selected.gameId, { ...payload, stepId: crypto.randomUUID(), step: steps.length });
-    setSteps((s) => [...s, created]);
-  };
+  /* CREATE STEP */
+  const handleCreateStep = useCallback(async payload => {
+    const created = await createAdminStep(
+      selected.gameId,
+      { ...payload, stepId: crypto.randomUUID(), step: steps.length }
+    );
+    setSteps(s => [...s, created]);
+  }, [selected, steps.length]);
 
-  /* ────────────────────────────────────────────────────────── */
-  /* Landing view */
+  /* UPDATE STEP */
+  const handleUpdate = useCallback(async (stepId, patch) => {
+    setSteps(s => s.map(x => x.stepId === stepId ? { ...x, ...patch } : x));
+    await patchAdminStep(stepId, patch);
+  }, []);
+
+  /* DELETE STEP */
+  const handleDelete = useCallback(async stepId => {
+    if (!window.confirm('Delete this step?')) return;
+    await deleteAdminStep(stepId);
+    setSteps(s => s.filter(x => x.stepId !== stepId));
+  }, []);
+
+  /* DELETE GAME */
+  const handleDeleteGame = useCallback(async () => {
+    if (!window.confirm('Delete this game?')) return;
+    await deleteAdminGame(selected.gameId);
+    setGames(g => g.filter(x => x.gameId !== selected.gameId));
+    setSelected(null);
+  }, [selected, setGames]);
+
+  const [publicOrigin, setPublicOrigin] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // remove any trailing /admin from the origin
+      setPublicOrigin(window.location.origin.replace(/\/admin\/?$/, ''));
+    }
+  }, []);
+
+  /* LANDING */
   if (!selected) {
     return (
       <ThemeProvider theme={glassTheme}>
@@ -200,7 +217,7 @@ export default function AdminDashboard() {
             </Typography>
 
             <ul className={dash.gamesList}>
-              {games.map((g) => (
+              {games.map(g => (
                 <li key={g.gameId}>
                   <Button
                     fullWidth
@@ -226,117 +243,117 @@ export default function AdminDashboard() {
               variant="contained"
               onClick={async () => {
                 const g = await createAdminGame();
-                setGames((arr) => [...arr, g]);
+                setGames(arr => [...arr, g]);
                 openGame(g);
               }}
               sx={{ background: 'var(--primary)', '&:hover': { background: 'var(--primary-light)' } }}
             >
               + New game
             </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={openEditor}
+              sx={{ mt: 1 }}
+            >
+              Modify messages
+            </Button>
+            {/* ─── Messages Editor Dialog ─────────────────── */}
+            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
+              <DialogTitle>Edit rotating messages</DialogTitle>
+              <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {editMessages.map((m, i) => (
+                  <TextField
+                    key={i}
+                    label={`Message #${i + 1}`}
+                    value={m}
+                    fullWidth
+                    onChange={e => {
+                      const arr = [...editMessages];
+                      arr[i] = e.target.value;
+                      setEditMessages(arr);
+                    }}
+                  />
+                ))}
+                <Button
+                  variant="text"
+                  onClick={() => setEditMessages([...editMessages, ""])}
+                >
+                  + Add another
+                </Button>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+                <Button variant="contained" onClick={saveMessages}>Save</Button>
+              </DialogActions>
+            </Dialog>
+            {/* ──────────────────────────────────────────────── */}
           </Paper>
         </Box>
       </ThemeProvider>
     );
   }
 
-  /* ────────────────────────────────────────────────────────── */
-  /* Editor view */
+  /* EDITOR */
   return (
     <ThemeProvider theme={glassTheme}>
-      <Box className={dash.page}>
-        {/* Sidebar */}
-        <Paper className={`${dash.cardGlass} ${dash.sidebar}`}>
-          <Typography variant="h6" fontWeight={700}>
-            Game settings
-          </Typography>
-
-          <Box className={dash.fieldGroup}>
-            <TextField
-              label="Title"
-              value={meta.title}
-              onChange={(e) => setMeta({ ...meta, title: e.target.value })}
-              fullWidth
-            />
-          </Box>
-
-          <Box className={dash.fieldGroup}>
-            <TextField
-              label="Description"
-              multiline
-              rows={3}
-              value={meta.description}
-              onChange={(e) => setMeta({ ...meta, description: e.target.value })}
-              fullWidth
-            />
-          </Box>
-
-          <Box className={dash.fieldGroup}>
-            <TextField
-              label="Allowed opponents (csv)"
-              value={meta.opponents}
-              onChange={(e) => setMeta({ ...meta, opponents: e.target.value })}
-              fullWidth
-            />
-          </Box>
-
-          <Box className={dash.saveBar}>
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={saveMeta}
-              disabled={savingMeta}
-              sx={{ background: 'var(--primary)', '&:hover': { background: 'var(--primary-light)' } }}
-            >
-              {savingMeta ? 'Saving…' : 'Save'}
-            </Button>
-            <Button fullWidth variant="text" onClick={() => setSelected(null)}>
-              ← Back to games
-            </Button>
-          </Box>
-        </Paper>
-
-        {/* Main panel */}
-        <Paper className={`${dash.cardGlass} ${dash.mainPanel}`}
-          sx={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
+      <Box
+        className={dash.page}
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          pt: '64px',                              // push below your 64px TopBar
+          height: 'calc(100vh - 64px)',            // fill remaining viewport
+          width: '100vw',
+          alignItems: 'flex-start',
+        }}
+      >
+        <MetaForm
+          meta={meta}
+          setMeta={setMeta}
+          savingMeta={savingMeta}
+          onSave={saveMeta}
+          onBack={() => setSelected(null)}
         >
-          <Box className={dash.mainHeader} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography className={dash.sectionTitle}>
-              Steps ({steps.length})
-            </Typography>
-            <Box className={dash.actionBar}>
-              <AddStepForm onCreate={handleCreateStep} />
-            </Box>
+          {/* Show Game ID and Delete button */}
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
+            flexDirection="column"
+            rowGap="1em"
+          >
+            <Button
+              component="a"
+              href={`${publicOrigin}/g/${selected.gameId}`}
+              variant="contained"
+              color="primary"
+              fullWidth
+            >
+              Play Game
+            </Button>
+
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleDeleteGame}
+              fullWidth
+            >
+              Delete Game
+            </Button>
           </Box>
 
-          {loading && <Typography>Loading…</Typography>}
-
-          {!loading && (
-            <Box className={dash.stepsWrap}>
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={steps.map((s) => s.stepId)} strategy={verticalListSortingStrategy}>
-                  <ul className="space-y-3">
-                    {steps.map((s) => (
-                      <SortableItem key={s.stepId} id={s.stepId}>
-                        <StepRow
-                          step={s}
-                          onUpdate={async (patch) => {
-                            setSteps((arr) => arr.map((it) => (it.stepId === s.stepId ? { ...it, ...patch } : it)));
-                            await patchAdminStep(s.stepId, patch);
-                          }}
-                          onDelete={async () => {
-                            if (!window.confirm('Delete this step?')) return;
-                            await deleteAdminStep(s.stepId);
-                            setSteps((arr) => arr.filter((it) => it.stepId !== s.stepId));
-                          }}
-                        />
-                      </SortableItem>
-                    ))}
-                  </ul>
-                </SortableContext>
-              </DndContext>
-            </Box>
-          )}
-        </Paper>
+          <StepsPanel
+            steps={steps}
+            loading={loading}
+            sensors={sensors}
+            handleDragEnd={handleDragEnd}
+            handleCreateStep={handleCreateStep}
+            onUpdate={handleUpdate}
+            onDelete={handleDelete}
+          />
+        </MetaForm>
       </Box>
     </ThemeProvider>
   );

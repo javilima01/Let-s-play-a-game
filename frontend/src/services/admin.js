@@ -52,6 +52,21 @@ export const patchAdminStep = (stepId, patch) =>
 
 export const deleteAdminStep = (stepId) =>
   request(`/admin/steps/${stepId}`, { method: "DELETE" });
+export const deleteAdminGame = (gameId) =>
+  request(`/admin/games/${gameId}`, { method: "DELETE" });
+export const verifyStepPassword = (gameId, stepId, password) =>
+  request(
+    `/admin/games/${gameId}/steps/${stepId}/verify`,
+    {
+      method: "POST",
+      body: { password },
+    }
+  );
+export const setRotatingMessages = (messages) =>
+  request("/admin/messages", {
+    method: "POST",
+    body: messages,
+  });
 
 /* ───────── Bundle for convenience ───────── */
 export default {
@@ -63,4 +78,6 @@ export default {
   updateAdminStepOrder,
   patchAdminStep,
   deleteAdminStep,
+  deleteAdminGame,
+  setRotatingMessages
 };
