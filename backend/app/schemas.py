@@ -45,8 +45,7 @@ class ChallengeStep(BaseModel):
     type: Literal["challenge"] = "challenge"
     step: int
     stepId: str
-    player: PlayerMini
-    opponents: List[Opponent]
+    # player: PlayerMini
     clue: str
     challenge_action: str
 

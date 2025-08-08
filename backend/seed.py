@@ -111,22 +111,6 @@ seed_data = {
             "stepId": "demo-001-challenge-1",
             "step": 1,
             "type": "challenge",
-            "player": {"id": "me", "name": "You", "photo": "/assets/me.png"},
-            "opponents": [
-                {
-                    "id": 1,
-                    "name": "Alex",
-                    "photo": "/assets/milo.png",
-                    "stats": {"wins": 12, "losses": 3, "rating": 1480},
-                },
-                {
-                    "id": 2,
-                    "name": "Sam",
-                    "photo": "/assets/milo.png",
-                    "stats": {"wins": 22, "losses": 8, "rating": 1585},
-                },
-            ],
-            # New fields to satisfy ChallengeStep schema
             "clue": "¿A quién desafiarás en esta ronda?",
             "challenge_action": "desafiar",
         },
