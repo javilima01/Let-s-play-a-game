@@ -1,4 +1,4 @@
-const API_BASE = "http://gatitolind.mooo.com/api";
+const API_BASE = "http://gatitolindo.mooo.com/api";
 
 async function request(path, { method = "GET", body, headers = {}, ...rest } = {}) {
   const opts = {
