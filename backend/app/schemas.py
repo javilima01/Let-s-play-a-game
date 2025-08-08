@@ -67,7 +67,6 @@ class StartGameResponse(BaseModel):
     gameId: str
     total: int
     challengeSteps: List[int]
-    challengeEvery: int | None = None   # keep for backward compatibility
 
 
 

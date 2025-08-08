@@ -17,21 +17,6 @@ from .schemas import (
 )
 
 # ─────────────────────────────────────────────────────────────
-# Data helpers
-# ─────────────────────────────────────────────────────────────
-class GameConfig:
-    """Plain helper so we don't import Pydantic on the hot path."""
-    def __init__(self, total: int) -> None:
-        self.total = total
-
-
-class GameMeta(GameConfig):
-    def __init__(self, game_id: str, total: int) -> None:
-        super().__init__(total)
-        self.game_id = game_id
-
-
-# ─────────────────────────────────────────────────────────────
 # Service
 # ─────────────────────────────────────────────────────────────
 class GameService:
@@ -75,16 +60,6 @@ class GameService:
         doc = self._strip_id(doc)
         # ① If your Pydantic model expects the full object:
         return PlayerInfoResponse(**doc["stats"])
-    # ----------------------------------------------------------
-    # Game meta & lifecycle
-    # ----------------------------------------------------------
-    async def get_game_config(self) -> GameConfig:  # NEW
-        """
-        Reads the canonical defaults from `config` collection.
-        """
-        cfg = await self.db.config.find_one({"key": "game"}, {"_id": 0}) or {}
-        total = int(cfg.get("total", 20))
-        return GameConfig(total)
 
     async def insert_game(
         self,
@@ -103,15 +78,6 @@ class GameService:
                 "createdAt": created_at,
                 "started": False,
             }
-        )
-
-    async def get_game_meta(self, game_id: str) -> GameMeta | None:  # NEW
-        doc = await self.db.games.find_one(
-            {"gameId": game_id},
-            {"_id": 0, "total": 1},
-        )
-        return (
-            GameMeta(game_id, doc["total"]) if doc else None
         )
 
     async def mark_game_started(self, game_id: str):  # NEW
@@ -221,7 +187,6 @@ class GameService:
         """
         Admin dashboard: create an empty game shell and a matching description.
         """
-        cfg = await self.get_game_config()
         game_id = uuid.uuid4().hex
         title = payload.get("title") or "Untitled game"
         desc  = payload.get("description") or "Añade preguntas para empezar."
@@ -230,7 +195,7 @@ class GameService:
             game_id=game_id,
             title=title,
             description=desc,
-            total=payload.get("total", cfg.total),
+            total=0,
             created_at=datetime.now(timezone.utc),
         )
         # what the admin dashboard expects:

@@ -68,10 +68,6 @@ def create_app() -> FastAPI:
     # ───────────────────────────────────────
     @app.post("/start/{game_id}", response_model=StartGameResponse)
     async def start_game(game_id: str, svc: GameService = Depends(get_service)):
-        meta = await svc.get_game_meta(game_id)
-        if not meta:
-            raise HTTPException(404, "Game not found")
-
         # NEW: ask the DB which steps are challenges
         challenge_steps = await svc.get_challenge_steps(game_id)
 
@@ -79,10 +75,8 @@ def create_app() -> FastAPI:
 
         return StartGameResponse(
             gameId=game_id,
-            total=meta.total,
+            total=len(challenge_steps),
             challengeSteps=challenge_steps,
-            # challengeEvery left here only so the front-end won’t break
-            challengeEvery=getattr(meta, "challenge_every", None),
         )
 
     @app.get("/step/{game_id}/{step}", response_model=StepResponse)
