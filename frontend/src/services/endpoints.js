@@ -28,20 +28,19 @@ async function request(path, { method = "GET", body, headers = {}, ...rest } = {
 
 // --- Meta ------------------------------------------------------
 export const getDescription = (gameId) =>
-  request(`/description/${gameId}`);          // <-- accepts id now
+  request(`/api/description/${gameId}`);          // <-- accepts id now
 // export const createGame   = () => request("/games", { method: "POST" });
-export const startGame    = (id) => request(`/start/${id}`, { method: "POST" });
-export const getRotatingMessages = () => request("/messages");
+export const startGame    = (id) => request(`/api/start/${id}`, { method: "POST" });
+export const getRotatingMessages = () => request("/api/messages");
 
 // --- Gameplay --------------------------------------------------
-export const getStep = (gameId, step) => request(`/step/${gameId}/${step}`);
-export const getInfoPlayer = (playerId) => request(`/player/${playerId}`);
+export const getStep = (gameId, step) => request(`/api/step/${gameId}/${step}`);
+export const getInfoPlayer = (playerId) => request(`/api/player/${playerId}`);
 export const confirmChallenge = (gameId, step, opponentId) =>
-  request("/challenge/confirm", { method: "POST", body: { gameId, step, opponentId } });
+  request("/api/challenge/confirm", { method: "POST", body: { gameId, step, opponentId } });
 
 export default {
   getDescription,
-  // createGame, // NEW
   startGame,
   getRotatingMessages,
   getStep,

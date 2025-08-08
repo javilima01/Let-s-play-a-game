@@ -62,8 +62,6 @@ export default function StepRow({ step, onUpdate, onDelete }) {
               className={styles.header}
               onClick={() => setEditing(true)}
             >
-              <GripVertical size={18} className={styles.dragIcon} />
-
               <div className={styles.titleBlock}>
                 <span className={styles.titleText}>
                   {step.type.toUpperCase()} #{step.step}
@@ -74,18 +72,21 @@ export default function StepRow({ step, onUpdate, onDelete }) {
                     : `vs ${step.opponents?.length ?? 0} opponents`}
                 </span>
               </div>
+              <div className={styles.buttonWrapper}>
+                {/* <GripVertical size={18} className={styles.dragIcon} /> */}
+                <UiButton
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(step.stepId);
+                  }}
+                  className={styles.deleteBtn}
+                >
+                  <Trash2 size={16} />
+                </UiButton>
+              </div>
 
-              <UiButton
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(step.stepId);
-                }}
-                className={styles.deleteBtn}
-              >
-                <Trash2 size={16} />
-              </UiButton>
             </div>
           </CardContent>
         </Card>

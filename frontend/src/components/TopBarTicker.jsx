@@ -142,7 +142,6 @@ const styles = {
     position: 'relative',
     overflow: 'hidden',
     minHeight: '56px',
-    minHeight: '56px',
     display: 'flex',
     alignItems: 'center',
     background: '#1E90FF',

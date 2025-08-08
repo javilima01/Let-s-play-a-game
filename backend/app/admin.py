@@ -10,7 +10,7 @@ from .schemas import GameMetaResponse, StepResponse  # create small Pydantic mod
 
 from .database import get_db
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 def svc(db: AsyncIOMotorDatabase = Depends(get_db)) -> GameService:
     return GameService(db)
@@ -92,9 +92,11 @@ async def verify_step_password(
     if not is_valid:
         raise HTTPException(401, "Invalid password")
 
-    # fetch the step so we can return its clue
-    step = await service.get_step_by_id(game_id, step_id)
-    return {"clue": step.clue}
+    if payload.get("return_clue", True):
+        # fetch the step so we can return its clue
+        step = await service.get_step_by_id(game_id, step_id)
+        return {"clue": step.clue}
+    return {"is_correct": True}
 
 @router.post("/messages", response_model=List[str])
 async def set_rotating_messages(

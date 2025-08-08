@@ -29,41 +29,41 @@ async function request(
 /* ───────── Admin endpoints ───────── */
 
 // ── Games ───────────────────────────
-export const getAdminGames = () => request("/admin/games");
+export const getAdminGames = () => request("/api/admin/games");
 export const createAdminGame = (payload = {}) =>
-  request("/admin/games", { method: "POST", body: payload });
+  request("/api/admin/games", { method: "POST", body: payload });
 
 export const updateAdminGameMeta = (gameId, patch) =>
-  request(`/admin/games/${gameId}`, { method: "PUT", body: patch });
+  request(`/api/admin/games/${gameId}`, { method: "PUT", body: patch });
 
 // ── Steps ───────────────────────────
-export const getAdminSteps = (gameId) => request(`/admin/steps/${gameId}`);
+export const getAdminSteps = (gameId) => request(`/api/admin/steps/${gameId}`);
 export const createAdminStep = (gameId, stepDoc) =>
-  request(`/admin/steps/${gameId}`, { method: "POST", body: stepDoc });
+  request(`/api/admin/steps/${gameId}`, { method: "POST", body: stepDoc });
 
 export const updateAdminStepOrder = (gameId, orderArr) =>
-  request(`/admin/steps/order/${gameId}`, {
+  request(`/api/admin/steps/order/${gameId}`, {
     method: "PUT",
     body: orderArr,
   });
 
 export const patchAdminStep = (stepId, patch) =>
-  request(`/admin/steps/${stepId}`, { method: "PATCH", body: patch });
+  request(`/api/admin/steps/${stepId}`, { method: "PATCH", body: patch });
 
 export const deleteAdminStep = (stepId) =>
-  request(`/admin/steps/${stepId}`, { method: "DELETE" });
+  request(`/api/admin/steps/${stepId}`, { method: "DELETE" });
 export const deleteAdminGame = (gameId) =>
-  request(`/admin/games/${gameId}`, { method: "DELETE" });
-export const verifyStepPassword = (gameId, stepId, password) =>
+  request(`/api/admin/games/${gameId}`, { method: "DELETE" });
+export const verifyStepPassword = (gameId, stepId, password, return_clue) =>
   request(
-    `/admin/games/${gameId}/steps/${stepId}/verify`,
+    `/api/admin/games/${gameId}/steps/${stepId}/verify`,
     {
       method: "POST",
-      body: { password },
+      body: { password, return_clue },
     }
   );
 export const setRotatingMessages = (messages) =>
-  request("/admin/messages", {
+  request("/api/admin/messages", {
     method: "POST",
     body: messages,
   });

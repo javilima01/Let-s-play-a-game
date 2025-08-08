@@ -50,6 +50,7 @@ export default function StepForm({
     register,
     control,
     watch,
+    setValue,
     handleSubmit,
     reset,
     formState: { isDirty },
@@ -161,7 +162,7 @@ export default function StepForm({
                   checked={options[i].correct}
                   onChange={() => {
                     options.forEach((_, j) =>
-                      control.setValue(`options.${j}.correct`, j === i)
+                      setValue(`options.${j}.correct`, j === i)
                     );
                   }}
                 />

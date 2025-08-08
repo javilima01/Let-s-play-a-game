@@ -7,7 +7,23 @@
   --white-trans: rgba(255, 255, 255, 0.1);
   --white-trans-strong: rgba(255, 255, 255, 0.2);
 }
-
+.completed{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.finishedWrapper{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, var(--neutral-dark), var(--neutral-mid));
+  color: white;
+}
 .root {
   position: relative;
   height: 100vh;
@@ -108,4 +124,20 @@
 .stageWide {
   max-width: none;   /* override the 680 px cap */
   margin: 0;         /* flush to viewport edges */
+}
+
+.primaryBtn {
+  width: 70%;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 1rem;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.primaryBtn {
+  background: linear-gradient(45deg, var(--primary), var(--primary-light));
+  color: white;
 }

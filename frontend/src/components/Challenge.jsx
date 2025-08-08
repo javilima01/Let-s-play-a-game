@@ -7,7 +7,7 @@ export default function Challenge({ clue, challengeAction, gameId, stepId, onCom
   const [password, setPassword] = useState("");
   const handleSubmit = async () => {
     try {
-      const { clue } = await verifyStepPassword(gameId, stepId, password);
+      const { clue } = await verifyStepPassword(gameId, stepId, password, true);
       onComplete({ correct: true, message: clue })
     } catch (err) {
       console.error(err);

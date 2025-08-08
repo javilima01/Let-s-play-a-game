@@ -52,21 +52,21 @@ def create_app() -> FastAPI:
     # ───────────────────────────────────────
     # Meta endpoints
     # ───────────────────────────────────────
-    @app.get("/description/{game_id}", response_model=DescriptionResponse)
+    @app.get("/api/description/{game_id}", response_model=DescriptionResponse)
     async def game_description(game_id: str, svc: GameService = Depends(get_service)):
         doc = await svc.get_description(game_id)
         if not doc:
             raise HTTPException(404, "Description not found")
         return doc
 
-    @app.get("/messages", response_model=List[str])
+    @app.get("/api/messages", response_model=List[str])
     async def rotating_messages(svc: GameService = Depends(get_service)):
         return await svc.get_rotating_messages()
 
     # ───────────────────────────────────────
     # Gameplay endpoints
     # ───────────────────────────────────────
-    @app.post("/start/{game_id}", response_model=StartGameResponse)
+    @app.post("/api/start/{game_id}", response_model=StartGameResponse)
     async def start_game(game_id: str, svc: GameService = Depends(get_service)):
         # NEW: ask the DB which steps are challenges
         challenge_steps = await svc.get_challenge_steps(game_id)
@@ -79,14 +79,14 @@ def create_app() -> FastAPI:
             challengeSteps=challenge_steps,
         )
 
-    @app.get("/step/{game_id}/{step}", response_model=StepResponse)
+    @app.get("/api/step/{game_id}/{step}", response_model=StepResponse)
     async def step(game_id: str, step: int, svc: GameService = Depends(get_service)):
         doc = await svc.get_step(game_id, step)
         if not doc:
             raise HTTPException(404, "Step not found")
         return doc
 
-    @app.get("/player/{player_id}", response_model=PlayerInfoResponse)
+    @app.get("/api/player/{player_id}", response_model=PlayerInfoResponse)
     async def player(player_id: str, svc: GameService = Depends(get_service)):
         info = await svc.get_player_info(player_id)
         if not info:
@@ -94,7 +94,7 @@ def create_app() -> FastAPI:
         return info
 
     @app.post(
-        "/challenge/confirm",
+        "/api/challenge/confirm",
         response_model=ConfirmChallengeResponse,
         status_code=status.HTTP_200_OK,
     )
