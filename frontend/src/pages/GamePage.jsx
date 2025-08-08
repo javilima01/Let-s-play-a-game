@@ -55,7 +55,7 @@ export default function GamePage({ gameId }) {
 
   // Fetch current step data
   const fetchStep = useCallback(async () => {
-    if (totalSteps !== null && step > totalSteps) {
+    if (totalSteps !== null && step >= totalSteps) {
       setFinished(true);
       return;
     }
