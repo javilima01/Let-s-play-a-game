@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+const API_BASE = "http://gatitolind.mooo.com/api";
 
 async function request(path, { method = "GET", body, headers = {}, ...rest } = {}) {
   const opts = {
@@ -28,16 +28,16 @@ async function request(path, { method = "GET", body, headers = {}, ...rest } = {
 
 // --- Meta ------------------------------------------------------
 export const getDescription = (gameId) =>
-  request(`/api/description/${gameId}`);          // <-- accepts id now
+  request(`/description/${gameId}`);          // <-- accepts id now
 // export const createGame   = () => request("/games", { method: "POST" });
-export const startGame    = (id) => request(`/api/start/${id}`, { method: "POST" });
-export const getRotatingMessages = () => request("/api/messages");
+export const startGame    = (id) => request(`/start/${id}`, { method: "POST" });
+export const getRotatingMessages = () => request("/messages");
 
 // --- Gameplay --------------------------------------------------
-export const getStep = (gameId, step) => request(`/api/step/${gameId}/${step}`);
-export const getInfoPlayer = (playerId) => request(`/api/player/${playerId}`);
+export const getStep = (gameId, step) => request(`/step/${gameId}/${step}`);
+export const getInfoPlayer = (playerId) => request(`/player/${playerId}`);
 export const confirmChallenge = (gameId, step, opponentId) =>
-  request("/api/challenge/confirm", { method: "POST", body: { gameId, step, opponentId } });
+  request("/challenge/confirm", { method: "POST", body: { gameId, step, opponentId } });
 
 export default {
   getDescription,
